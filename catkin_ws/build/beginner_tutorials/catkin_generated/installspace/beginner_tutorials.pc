@@ -1,4 +1,4 @@
-prefix=/home/kj/catkin_ws/install
+prefix=/home/steffy/mobile_robots/catkin_ws/install
 
 Name: beginner_tutorials
 Description: Description of beginner_tutorials
