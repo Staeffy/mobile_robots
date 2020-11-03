@@ -1,8 +1,8 @@
-prefix=/home/steffy/mobile_robots/catkin_ws/devel
+prefix=/home/kj/catkin_ws/devel
 
 Name: beginner_tutorials
 Description: Description of beginner_tutorials
 Version: 0.0.0
-Cflags: 
+Cflags: -I/home/kj/catkin_ws/devel/include
 Libs: -L${prefix}/lib 
-Requires: 
+Requires: message_runtime rospy std_msgs
