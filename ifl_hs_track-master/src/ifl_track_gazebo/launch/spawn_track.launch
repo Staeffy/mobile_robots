@@ -1,0 +1,24 @@
+<launch>
+  <arg name="model" default="ifl_track.urdf"/>
+  <arg name="name" default="ifl_track"/>
+  <arg name="number" default="1"/>
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
+  <arg name="Y" default="0"/>
+
+<group ns="/$(arg name)$(arg number)">
+  <param name="tf_prefix" value="$(arg name)$(arg number)" />
+
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find ifl_track_gazebo)/models/$(arg model)"/>
+
+  <node name="urdf_spawner_$(arg number)" pkg="gazebo_ros" type="spawn_model"
+    args="-x $(arg x) -y $(arg y) -z 0.0 -Y $(arg Y) -unpause -urdf -model $(arg name)$(arg number) -param robot_description " respawn="false" output="screen">
+  </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher_$(arg number)">
+    <param name="publish_frequency" type="double" value="50.0" />
+  </node>
+</group>
+
+</launch>

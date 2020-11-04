@@ -1,0 +1,24 @@
+<launch>
+  <arg name="model" default="burger_for_autorace_2020"/>
+  <arg name="name" default="ifl_turtlebot"/>
+  <arg name="number" default="1"/>
+  <arg name="x" default="0"/>
+  <arg name="y" default="3.7"/>
+  <arg name="z" default="0"/>
+  <arg name="Y" default="0"/>
+
+<group ns="/$(arg name)$(arg number)">
+  <param name="tf_prefix" value="$(arg name)$(arg number)" />
+   <param name="/$(arg name)$(arg number)/robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro"/>
+      <node name="urdf_spawner_$(arg number)" pkg="gazebo_ros" type="spawn_model"
+        args="-x $(arg x) -y $(arg y) -z 0.0 -Y $(arg Y) -unpause -urdf -model $(arg name)$(arg number) -param robot_description " respawn="false" output="screen">
+      </node>
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher"  name="robot_state_publisher_$(arg number)">
+    <param name="publish_frequency" type="double" value="30.0" />
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg name)$(arg number)link_broadcaster" args="0 0 0 0 0 0 1 ifl_track $(arg name)$(arg number)/odom" />
+
+  </group>
+</launch>
