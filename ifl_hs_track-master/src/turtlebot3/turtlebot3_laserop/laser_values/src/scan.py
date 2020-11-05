@@ -3,97 +3,129 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+import math
+import json
+
+class ControlCenter:
+
+    def __init__(self):
+        print "registering publisher and subscriber"
+
+        #reg subscriber, always callback when there is new number
+        rospy.init_node('scan_values', anonymous=True)
+        self.sub = rospy.Subscriber('/ifl_turtlebot1/scan', LaserScan, self.callback)
+
+        #reg publisher , only when change pos() called, it is used 
+        self.pub = rospy.Publisher("/ifl_turtlebot1/cmd_vel", Twist, queue_size=10)
 
 
-#set max velocity
 
-LIN_VEL_STEP_SIZE = 0.01
-ANG_VEL_STEP_SIZE = 0.1
+    def callback(self,msg):
+     
+        
 
+        ranges= msg.ranges
+       
+        max_forward =msg.range_max
+        stop_forward =msg.range_min
+        print "getting raw range 270",ranges[270]
+        print "min angle:",(msg.angle_min*180/math.pi), "max angle", (msg.angle_max*180/math.pi), "increment:",(msg.angle_increment*180/math.pi)
 
-def vels(target_linear_vel, target_angular_vel):
-    return "currently:\tlinear vel %s\t angular vel %s " % (target_linear_vel,target_angular_vel)
+            #to improve=zahlen runden
+        #werte analysieren, dann reagieren
 
+        self.maneuver(ranges, max_forward,stop_forward)
 
+    def maneuver(self,ranges,max_forward,stop_forward):
 
-"""get distance from robot for left and right side """
-global status
-status=0
+        right_side_range=ranges[270]
+        #right_side_range=("%.2f" % right_side_range)
+        left_side_range =ranges[90]
+        #left_side_range=("%.2f" % left_side_range)
 
-def callback(msg):
-    print len(msg.ranges)
-    
-    ranges= msg.ranges
-    max_value = max(ranges)
-    max_index =ranges.index(max_value)
-    print max_index
+        forward_range =ranges[0]
+        #forward_range=("%.2f" % forward_range)
 
+        max_forward=("%.2f" % max_forward)
+        stop_forward=("%.2f" % stop_forward)
 
-    right_angle= msg.ranges[270]
-    left_angle = msg.ranges[90]
+        print "current ranges", "r",right_side_range, "l:", left_side_range, "f", forward_range, "max_f", max_forward
 
-   
+        #if right_side_range == left_side_range and self.status==3: 
+            #print "perfectly in the middle with no obstacles"
+            #self.status =0
 
-    if (right_angle < left_angle):
-        print "right side approaching wall"
-        status=1
+        #if (forward_range > 0.50):
+            #print "go forward"
+            #status=0
+        if  forward_range <0.50:
+            print "fw_range=",forward_range, "stop moving forward"
+            status=5
+            
+        if forward_range >=0.5:
+            status=0
+            print "fw range =",forward_range, "ready to go forward"
 
-    if (right_angle > left_angle):
-        print "left side approaching wall"
-        status=2
+        if right_side_range < 0.40:
+            status=1
+            print "right side approaching wall"
 
-    if (right_angle == left_angle): 
-        print "driving perfectly in the middle"
-        status =0
+        if left_side_range <0.40:
+            print "left side approaching wall"
+            status=2
+            
+        else:
+            print"idk what to do"
+      
+        print "eval status", status
+        
+        #reaktion auf status
+        self.change_position(status)
 
-    
-        # values at 0 degree
-    #print msg.ranges[0]
-    # values at 90 degree
-    #print msg.ranges[90]
-    # values at 180 degree
-    #print msg.ranges[180]
-    
+    def change_position(self,status):
+  
+     
+        control_linear_vel  = 0.0
+        control_angular_vel = 0.0
+
+        #print("received status", status)
+        #if self.status ==3:
+            #control_linear_vel=0.1
+            #control_angular_vel=0.0
+            #print ""
+
+        if  status == 1:
+            control_angular_vel=0.1
+            #control_linear_vel=0.1
+            print "turn left"
+        
+        if  status == 2:
+            control_angular_vel=-0.1
+            #control_linear_vel=0.1
+            print "turn right"
+
+        if  status == 0:
+            control_linear_vel=+0.1
+            control_angular_vel=0.0
+            print "speed up"
+        
+        if  status ==5:
+            control_linear_vel=0.0
+            print "stop moving"
+       
+        twist = Twist()
+        twist.linear.x = control_linear_vel
+        twist.angular.z = control_angular_vel
+        self.pub.publish(twist)
+
 
 
 if __name__=="__main__":
 
-    #1. get current stats
-    rospy.init_node('scan_values')
-    sub = rospy.Subscriber('/ifl_turtlebot1/scan', LaserScan, callback)
-    rospy.spin()
 
-    print "curent status =", status
+    try: 
+        start=ControlCenter()
+        rospy.spin()
 
-    if status == 1:
-        target_angular_vel=+1
-    
-    if status == 2:
-        target_angular_vel=-1
-
-    if status == 0:
-        target_angular_vel=0.0
-
-    #2. check ranges 
-
-    #3. update velocity 
-    rospy.init_node("turtlebot3_teleop")
-    pub = rospy.Publisher("/ifl_turtlebot1/cmd_vel", Twist, queue_size=10)
-
-    #status = 0
-    target_linear_vel   = 0.0
-    target_angular_vel  = 0.0
-    control_linear_vel  = 0.1
-    control_angular_vel = 0.0
-
-
-
-    twist = Twist()
-
-    #control_linear_vel = makeSimpleProfile(control_linear_vel, target_linear_vel, (LIN_VEL_STEP_SIZE/2.0))
-    twist.linear.x = control_linear_vel; twist.linear.y = 0.0; twist.linear.z = 0.0
-
-    #control_angular_vel = makeSimpleProfile(control_angular_vel, target_angular_vel, (ANG_VEL_STEP_SIZE/2.0))
-    twist.angular.x = 0.0; twist.angular.y = 0.0; twist.angular.z = control_angular_vel
-
-    pub.publish(twist)
+    except rospy.ROSInterruptException:
+        pass
