@@ -29,4 +29,76 @@
     <static>true</static>
   </gazebo>
 
+<link name="start_line">
+  <visual>
+    <geometry>
+      <box size="0.9 0.09 0.003"/>
+    </geometry>
+  </visual>
+</link>
+<gazebo reference="start_line">
+  <mu1 value="0.0"/>
+  <mu2 value="0.0"/>
+  <material>Gazebo/White</material>
+</gazebo>
+<joint name="fix_box1" type="fixed">
+  <origin xyz = "-4.123117 -1.463373 0.01" rpy = "0 0 0"/>
+  <parent link="ifl_track"/>
+  <child link="start_line"/>
+</joint>
+
+<link name="detector">
+  <visual>
+    <origin xyz = "0 0 0" rpy = "0 0 0"/>
+    <geometry>
+      <cylinder length="0.015" radius="0.01"/>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="fix_detector" type="fixed">
+  <origin xyz = "-3.68 -1.463373 0.1" rpy = "0 0 -3.14"/>
+  <parent link="ifl_track"/>
+  <child link="detector"/>
+</joint>
+
+<gazebo reference="detector">    
+  <material>Gazebo/BlackTransparent</material>    
+   <sensor type="ray" name="ir_leftabc">
+      <pose>0 0 0 0 0 0</pose>
+      <update_rate>50</update_rate>
+      <ray>
+         <scan>
+            <horizontal>
+               <samples>1</samples>
+               <resolution>1.0</resolution>
+               <min_angle>-0.01</min_angle>
+               <max_angle>0.01</max_angle>
+            </horizontal>
+            <vertical>
+               <samples>1</samples>
+               <resolution>1</resolution>
+               <min_angle>-0.01</min_angle>
+               <max_angle>0.01</max_angle>
+            </vertical>
+         </scan>
+         <range>
+            <min>0.01</min>
+            <max>1.2</max>
+            <resolution>0.01</resolution>
+         </range>
+      </ray>
+      <plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range">
+         <gaussianNoise>0.005</gaussianNoise>
+         <alwaysOn>true</alwaysOn>
+         <updateRate>50</updateRate>
+         <topicName>detector</topicName>
+         <frameName>detector</frameName>
+         <visualize>true</visualize>
+         <radiation>infrared</radiation>
+         <fov>0.02</fov>
+      </plugin>
+   </sensor>            
+</gazebo>
+
 </robot>

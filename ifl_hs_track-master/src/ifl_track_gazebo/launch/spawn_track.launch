@@ -21,4 +21,8 @@
   </node>
 </group>
 
+  <node pkg="ifl_track_gazebo"  type="laptimer.py" name="$(arg name)$(arg number)_laptimer" output="screen">
+    <param name="ns" type="String" value="$(arg name)$(arg number)/" />
+  </node>
+
 </launch>

@@ -87,7 +87,7 @@ class ControlCenter:
         print(avgRange_left_back  , avgRange_right_back )
 
 
-        control_linear_vel  = max_vel - LIN_CONST * (CONST_Linear_Front_mid_ratio * abs (avgRange_right_front - avgRange_left_front) - (1/CONST_Linear_Front_mid_ratio) abs(avgRange_right_side - avgRange_left_side))
+        control_linear_vel  = max_vel - LIN_CONST * (CONST_Linear_Front_mid_ratio * abs (avgRange_right_front - avgRange_left_front) - (1/CONST_Linear_Front_mid_ratio)* abs(avgRange_right_side - avgRange_left_side))
         control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
         #annahme: rechtherum is neg                                                                                               left - right
         print("linVel: ", control_linear_vel)
