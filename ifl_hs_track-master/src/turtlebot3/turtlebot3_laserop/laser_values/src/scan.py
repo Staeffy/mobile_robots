@@ -36,6 +36,52 @@ class ControlCenter:
 
         self.maneuver(ranges, max_forward,stop_forward)
 
+
+
+
+
+    def split(a, n):
+        k, m = divmod(len(a), n)
+        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+
+    def dynamic_maneuver():
+
+        rangeChunks = list(self.split(ranges, 6))
+
+        range_left_front = rangeChunks[0]
+        range_left_side  = rangeChunks[1]
+        range_left_back  = rangeChunks[2]
+        range_right_back = rangeChunks[3]
+        range_right_side = rangeChunks[4]
+        range_right_front= rangeChunks[5]
+
+
+        avgRange_left_front = sum(range_left_front )/len(range_left_front )
+        avgRange_left_side  = sum(range_left_side  )/len(range_left_side  )
+        avgRange_left_back  = sum(range_left_back  )/len(range_left_back  )
+        avgRange_right_back = sum(range_right_back )/len(range_right_back )
+        avgRange_right_side = sum(range_right_side )/len(range_right_side )
+        avgRange_right_front= sum(range_right_front)/len(range_right_front)
+
+        #if ()
+
+
+        print(avgRange_left_front , avgRange_right_front)
+        print(avgRange_left_side  , avgRange_right_side )
+        print(avgRange_left_back  , avgRange_right_back )
+
+        #goForward(avgRange_left_front , avgRange_right_front)
+
+        LIN_CONST = 1
+        ANG_CONST = 1
+        max_vel   = 2
+
+        lin_vel = max_vel - LIN_CONST * (abs (avgRange_right_front - avgRange_left_front) - abs(avgRange_right_side - avgRange_left_side))
+        ang_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
+        #annahme: rechtherum is neg                                                                         left - right
+
+
+
     def maneuver(self,ranges,max_forward,stop_forward):
 
         right_side_range=ranges[270]
@@ -51,13 +97,6 @@ class ControlCenter:
 
         print "current ranges", "r",right_side_range, "l:", left_side_range, "f", forward_range, "max_f", max_forward
 
-        #if right_side_range == left_side_range and self.status==3: 
-            #print "perfectly in the middle with no obstacles"
-            #self.status =0
-
-        #if (forward_range > 0.50):
-            #print "go forward"
-            #status=0
         if  forward_range <0.50:
             print "fw_range=",forward_range, "stop moving forward"
             status=5
