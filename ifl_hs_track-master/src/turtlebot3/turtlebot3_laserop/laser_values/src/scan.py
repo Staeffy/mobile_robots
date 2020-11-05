@@ -61,19 +61,19 @@ class ControlCenter:
             print "fw range =",forward_range, "ready to go forward"
             Forward=True
 
-        if right_side_range < 0.40:
+        if right_side_range < 0.50:
             Right=False
             print "right side approaching wall"
 
-        if right_side_range > 0.40:
+        if right_side_range > 0.50:
             Right=True
             print "right side approaching wall"
 
-        if left_side_range <0.40:
+        if left_side_range <0.50:
             print "left side approaching wall"
             Left=False
 
-        if left_side_range >0.40:
+        if left_side_range >0.50:
             print "left side approaching wall"
             Left=True
 
@@ -113,10 +113,21 @@ class ControlCenter:
             #control_linear_vel=0.1
             print "turn right"
 
-        if  Forward == True and (Right ==True or Left==True):
+        if  Forward == True and Right ==True and Left==True:
             control_linear_vel=+0.1
             #control_angular_vel=0.0
-            print "speed up"
+            print "all clear,speed up"
+
+        if Forward ==True and status==1:
+            print "forward clear,adjust left"
+            control_angular_vel=+0.1
+            control_linear_vel=+0.1
+        
+        if Forward ==True and status==2:
+            print"forward clear, adjust right"
+            control_linear_vel=0.2
+            control_angular_vel=-0.1
+
         
         if  Forward ==False and status==1:
             control_linear_vel=0.0
