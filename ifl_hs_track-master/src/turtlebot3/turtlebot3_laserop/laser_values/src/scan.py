@@ -3,7 +3,7 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
-from numpy import inf
+import numpy as np
 import math
 import json
 
@@ -19,85 +19,61 @@ class ControlCenter:
         #reg publisher , only when change pos() called, it is used 
         self.pub = rospy.Publisher("/ifl_turtlebot1/cmd_vel", Twist, queue_size=10)
 
+        self.v = 1
 
 
     def callback(self,msg):
      
-        
-
         ranges= msg.ranges
-       
-        max_forward =msg.range_max
-        stop_forward =msg.range_min
-        print "getting raw range 270",ranges[270]
-        print "min angle:",(msg.angle_min*180/math.pi), "max angle", (msg.angle_max*180/math.pi), "increment:",(msg.angle_increment*180/math.pi)
-
-            #to improve=zahlen runden
-        #werte analysieren, dann reagieren
-
+        print("\nGet Sensor Data: ")
         self.dynamic_maneuver(ranges)
+        print("\n")
 
 
-
-    def split(self, a, n):
-        k, m = divmod(len(a), n)
-        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
-
+    
     def dynamic_maneuver(self, ranges):
         
-        max_vel   = 0.6   #0,2    # max velocity of the robot if its directly in the middle
-        LIN_CONST = 0.1  #0.1   # deaccelarating Factor if range values are unequal
-        ANG_CONST = 0.19   #0,2    # ang accelerating if factors are unequal
-        maxRange  = 1    #3
-        CONST_Linear_Front_mid_ratio = 0.8
-
-        rangeChunks = list(self.split(ranges, 6))
-
-        #range_left_front = rangeChunks[0]
-        range_left_side  = rangeChunks[1]
-        #range_left_back  = rangeChunks[2]
-        #range_right_back = rangeChunks[3]
-        range_right_side = rangeChunks[4]
-        #range_right_front= rangeChunks[5]
-
-        avgRange_left_front = ranges[30]  #sum(range_left_front )/len(range_left_front )
-        avgRange_left_side  = sum(range_left_side  )/len(range_left_side  )
-        #avgRange_left_back  = sum(range_left_back  )/len(range_left_back  )
-        #avgRange_right_back = sum(range_right_back )/len(range_right_back )
-        avgRange_right_side = sum(range_right_side )/len(range_right_side )
-        avgRange_right_front= ranges[330] #sum(range_right_front)/len(range_right_front)
-
-        if (avgRange_left_front == inf):
-            avgRange_left_front = maxRange
-        if (avgRange_right_front == inf):
-            avgRange_right_front = maxRange
-        if (avgRange_left_side == inf):
-            avgRange_left_side = maxRange
-        if (avgRange_right_side == inf):
-            avgRange_right_side = maxRange
-       # if (avgRange_left_back == inf):
-       #     avgRange_left_back = maxRange
-       # if (avgRange_right_back == inf):
-       #     avgRange_right_back = maxRange
-
-        print('vv----------------------------vv')
-        print(avgRange_left_front , avgRange_right_front)
-        print(avgRange_left_side  , avgRange_right_side )
-        #print(avgRange_left_back  , avgRange_right_back )
+        ranges = np.array(ranges)
+        forward_space = ranges[0]
 
 
-        control_linear_vel  = max_vel - LIN_CONST * ((CONST_Linear_Front_mid_ratio * abs(avgRange_right_front - avgRange_left_front)) + (1/CONST_Linear_Front_mid_ratio * abs(avgRange_right_side - avgRange_left_side)))
-        control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
-        #annahme: rechtherum is neg                                                                                               left - right
-        print("linVel: ", control_linear_vel)
-        print("angVel: ", control_angular_vel)
+        if forward_space == np.inf:
+            print("Go Straight: {}".format(self.v))
+            twist = Twist()
+            twist.linear.x = self.v
+            twist.angular.z = 0
+            self.pub.publish(twist)
+
+            self.v = self.v + 1
+            return None
         
-        twist = Twist()
-        twist.linear.x = control_linear_vel
-        twist.angular.z = control_angular_vel
-        self.pub.publish(twist)
+        else: 
+            median_angle = getRotationAngle(ranges)
+            rotation_v = self.v * median_angle
+            print("Rotation: {} / {} (Straigt/Rotation)".format(self.v, rotation_v))
+            twist = Twist()
+            twist.linear.x = self.v
+            twist.angular.z = rotation_v
+            self.pub.publish(twist)
 
 
+    def getRotationAngle(self, ranges):
+
+        ranges[ranges == np.inf] = 3.5
+        right_ranges = ranges[:90]
+        left_ranges = ranges[-90::]
+
+        if np.sum(right_ranges) < np.sum(left_ranges):
+            print("Left Curve")
+            median_angle = 360 - np.median(np.where(left_ranges == 3.5)[0])
+            print("Left Curve - Median Angle: {}".format(median_angle))
+        else:
+            print("Right Curve")
+            median_angle = - np.median(np.where(right_ranges == 3.5)[0])
+            print("Right Curve - Median Angle: {}".format(median_angle))
+
+        
+        return median_angle
 
 if __name__=="__main__":
 
