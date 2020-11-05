@@ -45,6 +45,8 @@ class ControlCenter:
             self.pub.publish(twist)
 
             self.v = self.v + 1
+            if self.v > 2:
+                self.v = 2
             return None
         
         else: 
@@ -63,7 +65,11 @@ class ControlCenter:
         right_ranges = ranges[:90]
         left_ranges = ranges[-90::]
 
-        if np.sum(right_ranges) < np.sum(left_ranges):
+        sum_right = np.sum(right_ranges)
+        sum_left =  np.sum(left_ranges)
+        
+        print("Sum Right Ranges vs. Left Ranges ->  R:{} - L:{}".format(sum_right, sum_left))
+        if  sum_right < sum_left :
             print("Left Curve")
             median_angle = 360 - np.median(np.where(left_ranges == 3.5)[0])
             print("Left Curve - Median Angle: {}".format(median_angle))
