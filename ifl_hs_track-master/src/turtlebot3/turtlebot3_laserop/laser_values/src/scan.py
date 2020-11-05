@@ -45,9 +45,9 @@ class ControlCenter:
 
     def dynamic_maneuver(self, ranges):
         LIN_CONST = 0.1
-        ANG_CONST = 0.1
-        max_vel   = 1
-        maxRange  = 0.5
+        ANG_CONST = 0.2
+        max_vel   = 0.2
+        maxRange  = 2
 
         rangeChunks = list(self.split(ranges, 6))
 
@@ -82,13 +82,15 @@ class ControlCenter:
         print(avgRange_left_front , avgRange_right_front)
         print(avgRange_left_side  , avgRange_right_side )
         print(avgRange_left_back  , avgRange_right_back )
+        print(avgRange_left_back  , avgRange_right_back )
 
 
 
         control_linear_vel  = max_vel - LIN_CONST * (abs (avgRange_right_front - avgRange_left_front) - abs(avgRange_right_side - avgRange_left_side))
         control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
         #annahme: rechtherum is neg                                                                                               left - right
-
+        print("linVel: ", control_linear_vel)
+        print("angVel: ", control_angular_vel)
         
         twist = Twist()
         twist.linear.x = control_linear_vel
