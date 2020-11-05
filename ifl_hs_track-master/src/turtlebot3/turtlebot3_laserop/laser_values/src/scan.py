@@ -55,59 +55,82 @@ class ControlCenter:
 
         if  forward_range <0.50:
             print "fw_range=",forward_range, "stop moving forward"
-            status=5
+            Forward=False
             
         if forward_range >=0.5:
-            status=0
             print "fw range =",forward_range, "ready to go forward"
+            Forward=True
 
         if right_side_range < 0.40:
-            status=1
+            Right=False
+            print "right side approaching wall"
+
+        if right_side_range > 0.40:
+            Right=True
             print "right side approaching wall"
 
         if left_side_range <0.40:
             print "left side approaching wall"
+            Left=False
+
+        if left_side_range >0.40:
+            print "left side approaching wall"
+            Left=True
+
+
+        if (left_side_range > right_side_range):
+            print "more space on left side"
+            status=1
+        
+        if (right_side_range> left_side_range):
+            print "more space on right side"
             status=2
+
             
         else:
             print"idk what to do"
       
-        print "eval status", status
+        print "eval status",status,  "Left",Left , "Right", Right, "Forward", Forward
         
         #reaktion auf status
-        self.change_position(status)
+        self.change_position(Left, Right, Forward,status)
 
-    def change_position(self,status):
+    def change_position(self,Left,Right,Forward,status):
   
      
         control_linear_vel  = 0.0
         control_angular_vel = 0.0
 
-        #print("received status", status)
-        #if self.status ==3:
-            #control_linear_vel=0.1
-            #control_angular_vel=0.0
-            #print ""
+       
 
-        if  status == 1:
-            control_angular_vel=0.1
+        if  Right == False:
+            control_angular_vel=+0.1
             #control_linear_vel=0.1
             print "turn left"
         
-        if  status == 2:
+        if  Left == False:
             control_angular_vel=-0.1
             #control_linear_vel=0.1
             print "turn right"
 
-        if  status == 0:
+        if  Forward == True and (Right ==True or Left==True):
             control_linear_vel=+0.1
-            control_angular_vel=0.0
+            #control_angular_vel=0.0
             print "speed up"
         
-        if  status ==5:
+        if  Forward ==False and status==1:
             control_linear_vel=0.0
-            print "stop moving"
+            control_angular_vel=+0.1
+            print "stop moving + move left"
+
+        if  Forward ==False and status==2:
+            control_linear_vel=0.0
+            control_angular_vel=-0.1
+            print "stop moving + move right"
+
+            
        
+
         twist = Twist()
         twist.linear.x = control_linear_vel
         twist.angular.z = control_angular_vel
