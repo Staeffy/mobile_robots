@@ -22,72 +22,44 @@ class ControlCenter:
 
 
     def callback(self,msg):
-     
         
-
-        ranges= msg.ranges
+        self.ranges= msg.ranges
        
-        max_forward =msg.range_max
+        self.range_max =msg.range_max
         stop_forward =msg.range_min
-        print "getting raw range 270",ranges[270]
         print "min angle:",(msg.angle_min*180/math.pi), "max angle", (msg.angle_max*180/math.pi), "increment:",(msg.angle_increment*180/math.pi)
 
-            #to improve=zahlen runden
-        #werte analysieren, dann reagieren
-
-        self.dynamic_maneuver(ranges)
-
+        self.dynamic_maneuver(self.ranges)
+    
+    
+        
 
 
     def split(self, a, n):
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
+    def uninf(self, a, max_val):
+        if (a == inf):
+            print("inf to ",  max_val)
+            return max_val
+        return a
+
     def dynamic_maneuver(self, ranges):
         
-        max_vel   = 0.6   #0,2    # max velocity of the robot if its directly in the middle
-        LIN_CONST = 0.1  #0.1   # deaccelarating Factor if range values are unequal
-        ANG_CONST = 0.19   #0,2    # ang accelerating if factors are unequal
-        maxRange  = 1    #3
-        CONST_Linear_Front_mid_ratio = 0.8
-
-        rangeChunks = list(self.split(ranges, 6))
-
-        #range_left_front = rangeChunks[0]
-        range_left_side  = rangeChunks[1]
-        #range_left_back  = rangeChunks[2]
-        #range_right_back = rangeChunks[3]
-        range_right_side = rangeChunks[4]
-        #range_right_front= rangeChunks[5]
-
-        avgRange_left_front = ranges[30]  #sum(range_left_front )/len(range_left_front )
-        avgRange_left_side  = sum(range_left_side  )/len(range_left_side  )
-        #avgRange_left_back  = sum(range_left_back  )/len(range_left_back  )
-        #avgRange_right_back = sum(range_right_back )/len(range_right_back )
-        avgRange_right_side = sum(range_right_side )/len(range_right_side )
-        avgRange_right_front= ranges[330] #sum(range_right_front)/len(range_right_front)
-
-        if (avgRange_left_front == inf):
-            avgRange_left_front = maxRange
-        if (avgRange_right_front == inf):
-            avgRange_right_front = maxRange
-        if (avgRange_left_side == inf):
-            avgRange_left_side = maxRange
-        if (avgRange_right_side == inf):
-            avgRange_right_side = maxRange
-       # if (avgRange_left_back == inf):
-       #     avgRange_left_back = maxRange
-       # if (avgRange_right_back == inf):
-       #     avgRange_right_back = maxRange
+        MAX_RANGE = 3.5
+        CONST_LIN = 0.6
+        CONST_ANG = 0.1
+        
+        vl = self.uninf(ranges[30] , MAX_RANGE)
+        vm = self.uninf(ranges[0]  , MAX_RANGE)
+        vr = self.uninf(ranges[330], MAX_RANGE)
 
         print('vv----------------------------vv')
-        print(avgRange_left_front , avgRange_right_front)
-        print(avgRange_left_side  , avgRange_right_side )
-        #print(avgRange_left_back  , avgRange_right_back )
+        print(vl , vm , vr)
 
-
-        control_linear_vel  = max_vel - LIN_CONST * ((CONST_Linear_Front_mid_ratio * abs(avgRange_right_front - avgRange_left_front)) + (1/CONST_Linear_Front_mid_ratio * abs(avgRange_right_side - avgRange_left_side)))
-        control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
+        control_linear_vel  = vm / (2+abs(vl - vr))     * CONST_LIN
+        control_angular_vel = (1 / vm) * (1-(vr/vl))    * CONST_ANG
         #annahme: rechtherum is neg                                                                                               left - right
         print("linVel: ", control_linear_vel)
         print("angVel: ", control_angular_vel)
