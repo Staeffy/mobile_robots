@@ -45,7 +45,7 @@ class ControlCenter:
 
     def dynamic_maneuver(self, ranges):
         LIN_CONST = 0.1
-        ANG_CONST = 0.1
+        ANG_CONST = 0.01
         max_vel   = 1
         maxRange  = 0.5
 
