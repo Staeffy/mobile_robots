@@ -6,6 +6,7 @@ from geometry_msgs.msg import Twist
 import numpy as np
 import math
 import json
+import time
 
 class ControlCenter:
 
@@ -28,6 +29,7 @@ class ControlCenter:
         print("\nGet Sensor Data: ")
         self.dynamic_maneuver(ranges)
         print("\n")
+        time.sleep(2)
 
 
     
