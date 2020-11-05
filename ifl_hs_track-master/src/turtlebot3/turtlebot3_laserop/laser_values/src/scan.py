@@ -49,6 +49,7 @@ class ControlCenter:
         max_vel   = 0.2
         maxRange  = 2
 
+
         rangeChunks = list(self.split(ranges, 6))
 
         range_left_front = rangeChunks[0]
