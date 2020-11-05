@@ -2,10 +2,10 @@
   <arg name="model" default="burger_for_autorace_2020"/>
   <arg name="name" default="ifl_turtlebot"/>
   <arg name="number" default="1"/>
-  <arg name="x" default="0"/>
-  <arg name="y" default="3.7"/>
+  <arg name="x" default="-4.123"/>
+  <arg name="y" default="-1.54"/>
   <arg name="z" default="0"/>
-  <arg name="Y" default="0"/>
+  <arg name="Y" default="1.57"/>
 
 <group ns="/$(arg name)$(arg number)">
   <param name="tf_prefix" value="$(arg name)$(arg number)" />

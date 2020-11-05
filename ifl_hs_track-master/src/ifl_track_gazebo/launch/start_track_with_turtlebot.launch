@@ -22,9 +22,5 @@
       <arg name="model" value="burger_for_autorace_2020"/>
       <arg name="name" value="ifl_turtlebot"/>
       <arg name="number" value="1"/>
-      <arg name="x" value="0"/>
-      <arg name="y" value="3.7"/>
-      <arg name="z" value="0"/>
-      <arg name="Y" value="0"/>
   </include>
 </launch>
