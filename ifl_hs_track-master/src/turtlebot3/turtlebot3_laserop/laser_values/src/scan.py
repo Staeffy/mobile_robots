@@ -3,7 +3,7 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
-from numpy import inf
+import numpy as np
 import math
 import json
 
@@ -23,13 +23,13 @@ class ControlCenter:
 
     def callback(self,msg):
         
-        self.ranges= msg.ranges
+        ranges= msg.ranges
        
         self.range_max =msg.range_max
         stop_forward =msg.range_min
         print "min angle:",(msg.angle_min*180/math.pi), "max angle", (msg.angle_max*180/math.pi), "increment:",(msg.angle_increment*180/math.pi)
 
-        self.dynamic_maneuver(self.ranges)
+        self.dynamic_maneuver(ranges)
     
     
         
@@ -53,10 +53,12 @@ class ControlCenter:
         FUNNEL_DEG = 30
         FRONT_RATIO_DEGREE = 1
         
+        ranges = np.array(ranges)
+        ranges[ranges == np.inf] = 3.5
 
-        for n, i in enumerate(ranges):
-            if i == inf:
-                ranges[n] = 3
+        #for n, i in enumerate(ranges):
+        #    if i == inf:
+        #        ranges[n] = 3
 
 
         # Robo Front Ranges
@@ -65,10 +67,26 @@ class ControlCenter:
         vr = ranges[360-FUNNEL_DEG]  #self.uninf(ranges[330], INF_RANGE)
 
         # Robo max View Ranges
-        frontRanges = ranges[:]
-        del frontRanges[90:270]
+         #frontRanges = ranges[:]
+         #del frontRanges[90:270]
+        right_ranges = ranges[:90]
+        left_ranges = ranges[-90::]
 
-        d_vm = ranges.index(max(frontRanges))
+        sum_right = np.sum(right_ranges)
+        sum_left =  np.sum(left_ranges)
+        
+        if  sum_right < sum_left :
+            print("Left Curve")
+            print(left_ranges)
+            maxRange = np.max(left_ranges)
+            d_vm = np.where(left_ranges==maxRange)[0][0]
+        else:
+            print("Right Curve")
+            print(right_ranges)
+            maxRange = np.max(right_ranges)
+            d_vm = 359-np.where(right_ranges==maxRange)[0][0]
+
+        print("d_vm",d_vm)
         d_vr = (d_vm - FUNNEL_DEG) % 360
         d_vl = (d_vm + FUNNEL_DEG) % 360
 
