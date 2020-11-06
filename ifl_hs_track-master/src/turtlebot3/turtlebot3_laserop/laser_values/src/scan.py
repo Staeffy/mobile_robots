@@ -48,10 +48,10 @@ class ControlCenter:
     def dynamic_maneuver(self, ranges):
     
         INF_RANGE = 3.5
-        CONST_LIN = 0.3
-        CONST_ANG = 0.1
-        FUNNEL_DEG = 30
-        FRONT_RATIO_DEGREE = 1
+        CONST_LIN = 0.4
+        CONST_ANG = 0.07
+        FUNNEL_DEG = 45
+        FRONT_RATIO_DEGREE = 1.5
         
         ranges = np.array(ranges)
         ranges[ranges == np.inf] = 3.5
@@ -79,12 +79,12 @@ class ControlCenter:
             print("Left Curve")
             print(left_ranges)
             maxRange = np.max(left_ranges)
-            d_vm = np.where(left_ranges==maxRange)[0][0]
+            d_vm = 359-np.where(left_ranges==maxRange)[0][0]
         else:
             print("Right Curve")
             print(right_ranges)
             maxRange = np.max(right_ranges)
-            d_vm = 359-np.where(right_ranges==maxRange)[0][0]
+            d_vm = np.where(right_ranges==maxRange)[0][0]
 
         print("d_vm",d_vm)
         d_vr = (d_vm - FUNNEL_DEG) % 360
