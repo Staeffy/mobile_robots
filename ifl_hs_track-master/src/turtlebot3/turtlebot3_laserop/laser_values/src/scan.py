@@ -22,26 +22,28 @@ class ControlCenter:
 
 
     def callback(self,msg):
-     
         
-
-        ranges= msg.ranges
+        self.ranges= msg.ranges
        
-        max_forward =msg.range_max
+        self.range_max =msg.range_max
         stop_forward =msg.range_min
-        print "getting raw range 270",ranges[270]
         print "min angle:",(msg.angle_min*180/math.pi), "max angle", (msg.angle_max*180/math.pi), "increment:",(msg.angle_increment*180/math.pi)
 
-            #to improve=zahlen runden
-        #werte analysieren, dann reagieren
-
-        self.dynamic_maneuver(ranges)
-
+        self.dynamic_maneuver(self.ranges)
+    
+    
+        
 
 
     def split(self, a, n):
         k, m = divmod(len(a), n)
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+
+    def uninf(self, a, max_val):
+        if (a == inf):
+            print("inf to ",  max_val)
+            return max_val
+        return a
 
     def dynamic_maneuver(self, ranges):
     
@@ -51,6 +53,7 @@ class ControlCenter:
         FUNNEL_DEG = 30
         FRONT_RATIO_DEGREE = 1
         
+
         for n, i in enumerate(ranges):
             if i == inf:
                 ranges[n] = 3
@@ -90,6 +93,7 @@ class ControlCenter:
 
         control_linear_vel  = (FRONT_RATIO_DEGREE * front_linear_vel )  + ((1/FRONT_RATIO_DEGREE) * degreed_linear_vel  )
         control_angular_vel = (FRONT_RATIO_DEGREE * front_angular_vel)  + ((1/FRONT_RATIO_DEGREE) * degreed_angular_vel )
+
 
 
         print("linVel: ", control_linear_vel)
