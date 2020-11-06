@@ -20,8 +20,6 @@ class ControlCenter:
         #reg publisher , only when change pos() called, it is used 
         self.pub = rospy.Publisher("/ifl_turtlebot1/cmd_vel", Twist, queue_size=10)
 
-        self.v = 1
-
 
     def callback(self,msg):
      
@@ -29,7 +27,7 @@ class ControlCenter:
         print("\nGet Sensor Data: ")
         self.dynamic_maneuver(ranges)
         print("\n")
-        time.sleep(2)
+        #time.sleep(5)
 
 
     
@@ -37,28 +35,26 @@ class ControlCenter:
         
         ranges = np.array(ranges)
         forward_space = ranges[0]
+        control_value_lin=0.3
+        control_value_ang=0.0
 
-
-        if forward_space == np.inf:
+        print("Space Front: {}".format(forward_space))
+        if (forward_space == np.inf) or (forward_space>1.):
             print("Go Straight: {}".format(self.v))
-            twist = Twist()
-            twist.linear.x = self.v
-            twist.angular.z = 0
-            self.pub.publish(twist)
-
-            self.v = self.v + 1
-            if self.v > 2:
-                self.v = 2
-            return None
-        
+            control_value_lin+=0.1
+            
+         
         else: 
-            median_angle = getRotationAngle(ranges)
-            rotation_v = self.v * median_angle
-            print("Rotation: {} / {} (Straigt/Rotation)".format(self.v, rotation_v))
-            twist = Twist()
-            twist.linear.x = self.v
-            twist.angular.z = rotation_v
-            self.pub.publish(twist)
+            median_angle = self.getRotationAngle(ranges)
+            control_value_ang= 0.25 * self.v * median_angle
+            print("Rotation: {} / {} (Straigt/Rotation)".format(control_value_lin, control_value_ang))
+        
+
+        twist = Twist()
+        twist.linear.x = control_value_lin
+        twist.angular.z = control_value_ang
+        self.pub.publish(twist)
+        
 
 
     def getRotationAngle(self, ranges):
@@ -73,11 +69,13 @@ class ControlCenter:
         print("Sum Right Ranges vs. Left Ranges ->  R:{} - L:{}".format(sum_right, sum_left))
         if  sum_right < sum_left :
             print("Left Curve")
-            median_angle = 360 - np.median(np.where(left_ranges == 3.5)[0])
+            print(left_ranges)
+            median_angle = 360 - np.median(np.where(left_ranges == np.max(left_ranges))[0])
             print("Left Curve - Median Angle: {}".format(median_angle))
         else:
             print("Right Curve")
-            median_angle = - np.median(np.where(right_ranges == 3.5)[0])
+            print(right_ranges)
+            median_angle = - np.median(np.where(right_ranges == np.max(right_ranges))[0])
             print("Right Curve - Median Angle: {}".format(median_angle))
 
         
