@@ -44,51 +44,54 @@ class ControlCenter:
         return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
 
     def dynamic_maneuver(self, ranges):
+    
+        INF_RANGE = 3.5
+        CONST_LIN = 0.3
+        CONST_ANG = 0.1
+        FUNNEL_DEG = 30
+        FRONT_RATIO_DEGREE = 1
         
-        max_vel   = 0.6   #0,2    # max velocity of the robot if its directly in the middle
-        LIN_CONST = 0.1  #0.1   # deaccelarating Factor if range values are unequal
-        ANG_CONST = 0.19   #0,2    # ang accelerating if factors are unequal
-        maxRange  = 1    #3
-        CONST_Linear_Front_mid_ratio = 0.8
+        for n, i in enumerate(ranges):
+            if i == inf:
+                ranges[n] = 3
 
-        rangeChunks = list(self.split(ranges, 6))
 
-        #range_left_front = rangeChunks[0]
-        range_left_side  = rangeChunks[1]
-        #range_left_back  = rangeChunks[2]
-        #range_right_back = rangeChunks[3]
-        range_right_side = rangeChunks[4]
-        #range_right_front= rangeChunks[5]
+        # Robo Front Ranges
+        vl = ranges[FUNNEL_DEG]   #self.uninf(ranges[30] , INF_RANGE)
+        vm = ranges[0]    #self.uninf(ranges[0]  , INF_RANGE)
+        vr = ranges[360-FUNNEL_DEG]  #self.uninf(ranges[330], INF_RANGE)
 
-        avgRange_left_front = ranges[30]  #sum(range_left_front )/len(range_left_front )
-        avgRange_left_side  = sum(range_left_side  )/len(range_left_side  )
-        #avgRange_left_back  = sum(range_left_back  )/len(range_left_back  )
-        #avgRange_right_back = sum(range_right_back )/len(range_right_back )
-        avgRange_right_side = sum(range_right_side )/len(range_right_side )
-        avgRange_right_front= ranges[330] #sum(range_right_front)/len(range_right_front)
+        # Robo max View Ranges
+        frontRanges = ranges[:]
+        del frontRanges[90:270]
 
-        if (avgRange_left_front == inf):
-            avgRange_left_front = maxRange
-        if (avgRange_right_front == inf):
-            avgRange_right_front = maxRange
-        if (avgRange_left_side == inf):
-            avgRange_left_side = maxRange
-        if (avgRange_right_side == inf):
-            avgRange_right_side = maxRange
-       # if (avgRange_left_back == inf):
-       #     avgRange_left_back = maxRange
-       # if (avgRange_right_back == inf):
-       #     avgRange_right_back = maxRange
+        d_vm = ranges.index(max(frontRanges))
+        d_vr = (d_vm - FUNNEL_DEG) % 360
+        d_vl = (d_vm + FUNNEL_DEG) % 360
+
+        dvm = ranges[d_vm]
+        dvr = ranges[d_vr]
+        dvl = ranges[d_vl]
 
         print('vv----------------------------vv')
-        print(avgRange_left_front , avgRange_right_front)
-        print(avgRange_left_side  , avgRange_right_side )
-        #print(avgRange_left_back  , avgRange_right_back )
+        print(FUNNEL_DEG," deg" , " 0 deg " , 360-FUNNEL_DEG," deg ")
+        print(vl , vm , vr)
+        print(d_vl," deg " , d_vm," deg " , d_vr," deg ")
+        print(dvl, dvm , dvr)
 
 
-        control_linear_vel  = max_vel - LIN_CONST * ((CONST_Linear_Front_mid_ratio * abs(avgRange_right_front - avgRange_left_front)) + (1/CONST_Linear_Front_mid_ratio * abs(avgRange_right_side - avgRange_left_side)))
-        control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
-        #annahme: rechtherum is neg                                                                                               left - right
+        front_linear_vel  = vm / (2+abs(vl - vr))     * CONST_LIN
+        front_angular_vel = (1 / vm) * (1-(vr/vl))    * CONST_ANG
+    
+        degreed_linear_vel  = dvm / (2+abs(dvl - dvr))     * CONST_LIN
+        degreed_angular_vel = (1 / dvm) * (1-(dvr/dvl))    * CONST_ANG
+
+        #annahme: rechtherum is neg left - right
+
+        control_linear_vel  = (FRONT_RATIO_DEGREE * front_linear_vel )  + ((1/FRONT_RATIO_DEGREE) * degreed_linear_vel  )
+        control_angular_vel = (FRONT_RATIO_DEGREE * front_angular_vel)  + ((1/FRONT_RATIO_DEGREE) * degreed_angular_vel )
+
+
         print("linVel: ", control_linear_vel)
         print("angVel: ", control_angular_vel)
         
