@@ -66,8 +66,12 @@ class ControlCenter:
         #avgRange_right_back = sum(range_right_back )/len(range_right_back )
         avgRange_right_side = sum(range_right_side )/len(range_right_side )
         avgRange_right_front= ranges[330] #sum(range_right_front)/len(range_right_front)
+        nitro = 0
+        staticFrontRange = ranges[0]
 
-        if (avgRange_left_front == inf):
+        if (staticFrontRange == inf):
+            staticFrontRange = maxRange
+        if (avgRange_left_front == inf) :
             avgRange_left_front = maxRange
         if (avgRange_right_front == inf):
             avgRange_right_front = maxRange
@@ -75,6 +79,9 @@ class ControlCenter:
             avgRange_left_side = maxRange
         if (avgRange_right_side == inf):
             avgRange_right_side = maxRange
+        
+        if (staticFrontRange > 1):
+           nitro = 0.02 * staticFrontRange / (1+abs(avgRange_left_front - avgRange_right_front))
        # if (avgRange_left_back == inf):
        #     avgRange_left_back = maxRange
        # if (avgRange_right_back == inf):
@@ -86,7 +93,7 @@ class ControlCenter:
         #print(avgRange_left_back  , avgRange_right_back )
 
 
-        control_linear_vel  = max_vel - LIN_CONST * ((CONST_Linear_Front_mid_ratio * abs(avgRange_right_front - avgRange_left_front)) + (1/CONST_Linear_Front_mid_ratio * abs(avgRange_right_side - avgRange_left_side)))
+        control_linear_vel  = nitro +max_vel - LIN_CONST * ((CONST_Linear_Front_mid_ratio * abs(avgRange_right_front - avgRange_left_front)) + (1/CONST_Linear_Front_mid_ratio * abs(avgRange_right_side - avgRange_left_side)))
         control_angular_vel = ANG_CONST * ( ( (avgRange_left_front * avgRange_left_side) / (avgRange_right_front * avgRange_right_side) ) - ( (avgRange_right_front * avgRange_right_side) / (avgRange_left_front * avgRange_left_side) ) )
         #annahme: rechtherum is neg                                                                                               left - right
         print("linVel: ", control_linear_vel)
