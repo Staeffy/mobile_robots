@@ -81,7 +81,7 @@ class ControlCenter:
             avgRange_right_side = maxRange
         
         if (staticFrontRange > 1):
-           nitro = 0.02 * staticFrontRange / (1+abs(avgRange_left_front - avgRange_right_front))
+           nitro = 0.05 #0.02 * staticFrontRange / (1+abs(avgRange_left_front - avgRange_right_front))
        # if (avgRange_left_back == inf):
        #     avgRange_left_back = maxRange
        # if (avgRange_right_back == inf):
